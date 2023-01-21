@@ -85,6 +85,11 @@ public class TelegramBot
                         throw new Exception("No message data");
                     }
 
+                    if (!await AgeConfirmingService.CheckUserConfirm(this, update))
+                    {
+                        return;
+                    }
+
                     if (!_commands.TryGetValue(update.Message.Text.ToLower(), out var command))
                     {
                         await NoCommandMessage.Answer(this, update);
@@ -99,6 +104,11 @@ public class TelegramBot
                     if (data == null || !data.Any())
                     {
                         throw new Exception("No callback data!");
+                    }
+                    
+                    if (data.First() != "AgeConfirming" && !await AgeConfirmingService.CheckUserConfirm(this, update))
+                    {
+                        return;
                     }
 
                     if (!_callbacks.TryGetValue(data.First(), out var callback))

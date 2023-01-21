@@ -17,16 +17,6 @@ public class MainMenuTelegramCommand : ITelegramCommand
             throw new Exception("There is no user!");
         }
 
-        if (!user.AgeConfirmed)
-        {
-            await client.SendMessage("Для начала пользования ботом необходимо подтвердить возраст!", chatId);
-            await client.SendMessageWithButtons(
-                "Для продолжения пользования ботом Вы должны быть старше 18 лет.\nВы подтверждаете, что вам больше 18 лет?",
-                chatId,
-                AgeConfirm.AgeConfirmButtons());
-            return;
-        }
-
         await client.SendMessageWithButtons(
             $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
             chatId,
