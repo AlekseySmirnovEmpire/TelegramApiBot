@@ -140,6 +140,7 @@ public class TelegramBot
         catch (Exception ex)
         {
             _logger.LogError($"Error: {ex.Message}");
+            await SendMessage("Упс! Что-то пошло не так!", update.CallbackQuery?.From.Id ?? update.Message.From.Id);
         }
     }
 }
