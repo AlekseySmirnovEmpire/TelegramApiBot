@@ -5,6 +5,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramApiBot.Commands;
+using TelegramApiBot.Commands.Callback;
 using TelegramApiBot.Services;
 using User = TelegramApiBot.Data.Entities.User;
 
@@ -16,10 +17,12 @@ public class TelegramBot
     private readonly Dictionary<long, User> _usersInSession;
     private readonly ILogger<TelegramBot> _logger;
     private readonly Dictionary<string, ITelegramCommand> _commands;
+    private readonly Dictionary<string, ICallbackCommand> _callbacks;
 
     public TelegramBot(
         ILogger<TelegramBot> logger,
-        StartTelegramCommand startTelegramCommand,
+        IEnumerable<ITelegramCommand> telegramCommands,
+        IEnumerable<ICallbackCommand> callbackCommands,
         UserService userService)
     {
         _client = new TelegramBotClient(Environment.GetEnvironmentVariable("BOT_TOKEN") ?? string.Empty);
@@ -28,10 +31,8 @@ public class TelegramBot
         _usersInSession = userService.FindAllUsers().ToDictionary(u => u.Key);
         _logger.LogInformation($"Loaded {_usersInSession.Count} users from DB!");
 
-        _commands = new Dictionary<string, ITelegramCommand>
-        {
-            { startTelegramCommand.Name, startTelegramCommand }
-        };
+        _commands = telegramCommands.ToDictionary(t => t.Name);
+        _callbacks = callbackCommands.ToDictionary(c => c.Name);
     }
 
     public void AddUser(User user)
@@ -81,11 +82,10 @@ public class TelegramBot
                     if (update.Message == null
                         || string.IsNullOrEmpty(update.Message.Text))
                     {
-                        return;
+                        throw new Exception("No message data");
                     }
 
-                    _commands.TryGetValue(update.Message.Text.ToLower(), out var command);
-                    if (command == null)
+                    if (!_commands.TryGetValue(update.Message.Text.ToLower(), out var command))
                     {
                         return;
                     }
@@ -94,6 +94,18 @@ public class TelegramBot
                     break;
                 }
                 case UpdateType.CallbackQuery:
+                    var data = update.CallbackQuery?.Data?.Split(":");
+                    if (data == null || !data.Any())
+                    {
+                        throw new Exception("No callback data!");
+                    }
+
+                    if (!_callbacks.TryGetValue(data.First(), out var callback))
+                    {
+                        throw new Exception("Wrong callback data!");
+                    }
+
+                    await callback.Execute(this, update);
                     break;
                 case UpdateType.Unknown:
                     break;
@@ -122,7 +134,7 @@ public class TelegramBot
                 case UpdateType.ChatJoinRequest:
                     break;
                 default:
-                    throw new Exception("Нет такого метода!");
+                    throw new Exception("There is no method for type!");
             }
         }
         catch (Exception ex)

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TelegramApiBot.Commands;
+using TelegramApiBot.Commands.Callback;
 using TelegramApiBot.Configuration;
 using TelegramApiBot.Data;
 using TelegramApiBot.Services;
@@ -16,7 +17,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddSingleton<TelegramBot>();
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<StartTelegramCommand>();
+builder.Services.AddSingleton<ITelegramCommand, StartTelegramCommand>();
+builder.Services.AddSingleton<ITelegramCommand, MainMenuTelegramCommand>();
+builder.Services.AddSingleton<ICallbackCommand, AgeConfirmTelegramCommand>();
 
 var app = builder.Build();
 
