@@ -87,6 +87,7 @@ public class TelegramBot
 
                     if (!_commands.TryGetValue(update.Message.Text.ToLower(), out var command))
                     {
+                        await NoCommandMessage.Answer(this, update);
                         return;
                     }
 
