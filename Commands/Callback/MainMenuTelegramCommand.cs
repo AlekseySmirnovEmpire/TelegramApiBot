@@ -20,6 +20,7 @@ public class MainMenuTelegramCommand : ITelegramCommand
         await client.SendMessageWithButtons(
             $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
             chatId,
-            MainMenu.MainMenuButtons());
+            MainMenu.MainMenuButtons(),
+            true);
     }
 }
