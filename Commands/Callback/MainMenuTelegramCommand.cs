@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using TelegramApiBot.Data;
-using TelegramApiBot.Data.Buttons;
+using TelegramApiBot.Services;
 
 namespace TelegramApiBot.Commands.Callback;
 
@@ -17,10 +17,6 @@ public class MainMenuTelegramCommand : ITelegramCommand
             throw new Exception("There is no user!");
         }
 
-        await client.SendMessageWithButtons(
-            $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
-            chatId,
-            MainMenu.MainMenuButtons(),
-            true);
+        await MainMenuService.SendMainMenu(client, update);
     }
 }

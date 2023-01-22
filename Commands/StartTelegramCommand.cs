@@ -52,11 +52,7 @@ public class StartTelegramCommand : ITelegramCommand
 
         if (user.AgeConfirmed)
         {
-            await client.SendMessageWithButtons(
-                $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
-                user.Key,
-                MainMenu.MainMenuButtons(),
-                true);
+            await MainMenuService.SendMainMenu(client, update);
         }
     }
 }

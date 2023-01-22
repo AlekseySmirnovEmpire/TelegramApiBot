@@ -1,4 +1,5 @@
-﻿using TelegramApiBot.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TelegramApiBot.Data;
 using TelegramApiBot.Data.Entities;
 
 namespace TelegramApiBot.Services;
@@ -30,7 +31,9 @@ public class UserService
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-        dbContext.Users.Update(user);
+
+        dbContext.Database.ExecuteSqlRaw(
+            $@"UPDATE ""Users"" SET ""SubscribeType"" = {Convert.ToInt32(user.SubscribeType)}, ""AgeConfirmed"" = {user.AgeConfirmed} WHERE ""Id"" = '{user.Id}'");
     }
 
     public User? FindByKey(long userKey)
