@@ -18,6 +18,7 @@ public class TelegramBot
     private readonly ILogger<TelegramBot> _logger;
     private readonly Dictionary<string, ITelegramCommand> _commands;
     private readonly Dictionary<string, ICallbackCommand> _callbacks;
+    private readonly Dictionary<long, int> _messagesToDelete;
 
     public TelegramBot(
         ILogger<TelegramBot> logger,
@@ -33,6 +34,7 @@ public class TelegramBot
 
         _commands = telegramCommands.ToDictionary(t => t.Name);
         _callbacks = callbackCommands.ToDictionary(c => c.Name);
+        _messagesToDelete = new Dictionary<long, int>();
     }
 
     public void AddUser(User user)
@@ -48,16 +50,40 @@ public class TelegramBot
     public User? FindUser(long userKey) => !_usersInSession.TryGetValue(userKey, out var user) ? null : user;
 
     public async Task SendMessage(string text, long chatId) =>
-        await _client.SendTextMessageAsync(chatId, text);
+        await EditAndSendMessage(text, chatId, null, false);
 
-    public async Task SendMessageWithButtons(string text, long chatId, IReplyMarkup replyMarkup) =>
-        await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup);
+    public async Task SendMessageWithButtons(string text, long chatId, IReplyMarkup replyMarkup, bool isMainMenu) =>
+        await EditAndSendMessage(text, chatId, replyMarkup, isMainMenu);
 
     public void Start() => _client.StartReceiving(
         HandleUpdateAsync,
         HandleErrorAsync,
         new ReceiverOptions(),
         new CancellationTokenSource().Token);
+
+    private async Task EditAndSendMessage(string text, long chatId, IReplyMarkup? replyMarkup, bool isMainMenu)
+    {
+        if (_messagesToDelete.TryGetValue(chatId, out var messageId))
+        {
+            await _client.EditMessageReplyMarkupAsync(
+                chatId, 
+                messageId, 
+                new InlineKeyboardMarkup(Array.Empty<InlineKeyboardButton>()));
+            _messagesToDelete.Remove(chatId);
+        }
+
+        if (replyMarkup == null)
+        {
+            await _client.SendTextMessageAsync(chatId, text);
+            return;
+        }
+
+        var message = await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup);
+        if (!isMainMenu)
+        {
+            _messagesToDelete.Add(chatId, message.MessageId);
+        }
+    }
 
     private Task HandleErrorAsync(
         ITelegramBotClient botClient,

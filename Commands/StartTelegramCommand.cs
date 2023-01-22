@@ -45,7 +45,8 @@ public class StartTelegramCommand : ITelegramCommand
             await client.SendMessageWithButtons(
                 "Для продолжения пользования ботом Вы должны быть старше 18 лет.\nВы подтверждаете, что вам больше 18 лет?",
                 user.Key,
-                AgeConfirm.AgeConfirmButtons());
+                AgeConfirm.AgeConfirmButtons(),
+                false);
             return;
         }
 
@@ -54,7 +55,8 @@ public class StartTelegramCommand : ITelegramCommand
             await client.SendMessageWithButtons(
                 $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
                 user.Key,
-                MainMenu.MainMenuButtons());
+                MainMenu.MainMenuButtons(),
+                true);
         }
     }
 }

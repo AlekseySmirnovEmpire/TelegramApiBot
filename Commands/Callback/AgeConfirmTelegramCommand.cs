@@ -39,7 +39,8 @@ public class AgeConfirmTelegramCommand : ICallbackCommand
                 await client.SendMessageWithButtons(
                     $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
                     chatId,
-                    MainMenu.MainMenuButtons());
+                    MainMenu.MainMenuButtons(),
+                    true);
                 break;
             case "No":
                 await client.SendMessage("Чтобы пользоваться ботом необходимо быть старше 18 лет!", chatId);
