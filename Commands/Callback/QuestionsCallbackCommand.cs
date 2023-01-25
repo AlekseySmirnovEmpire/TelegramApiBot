@@ -26,11 +26,28 @@ public class QuestionsCallbackCommand : ICallbackCommand
         {
             throw new Exception("There is no data!");
         }
+        var user = client.FindUser(update.CallbackQuery.From.Id);
+        if (user == null)
+        {
+            throw new Exception("There is no user!");
+        }
 
         var questionId = Convert.ToInt32(data[1]);
+        
+        // ЗАГЛУШКА если перезагрузили бота, а кнопки с вопросами остались.
+        if (user.QuestionsToUsers != null && user.QuestionsToUsers.Any())
+        {
+            questionId = user.QuestionsToUsers.Count > questionId ? user.QuestionsToUsers.Count : questionId;
+            if (user.QuestionsToUsers.Count == client.QuestionsCount)
+            {
+                await client.SendMessageWithButtons(
+                    "Вы уже отвечали на вопросы!",
+                    user.Key,
+                    MainMenu.ReturnToMainMenuButton());
+            }
+        }
         if (client.QuestionsCount == questionId && data.Count > 2)
         {
-            var user = client.FindUser(update.CallbackQuery.From.Id);
             _questionsService.InitAnswer(user, questionId, data[2]);
             _anketService.GenerateSingleAnket(user);
             var anket = user.SingleAnket != null
