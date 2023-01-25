@@ -17,9 +17,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddSingleton<TelegramBot>();
 builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<QuestionsService>();
+builder.Services.AddSingleton<AnketService>();
+
 builder.Services.AddSingleton<ITelegramCommand, StartTelegramCommand>();
 builder.Services.AddSingleton<ITelegramCommand, MainMenuTelegramCommand>();
+
 builder.Services.AddSingleton<ICallbackCommand, AgeConfirmTelegramCommand>();
+builder.Services.AddSingleton<ICallbackCommand, QuestionsCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, AnketCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, FindPairCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, MainMenuCallbackCommand>();
 
 var app = builder.Build();
 

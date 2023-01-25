@@ -6,6 +6,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramApiBot.Commands;
 using TelegramApiBot.Commands.Callback;
+using TelegramApiBot.Data.Entities;
 using TelegramApiBot.Services;
 using User = TelegramApiBot.Data.Entities.User;
 
@@ -13,18 +14,22 @@ namespace TelegramApiBot.Data;
 
 public class TelegramBot
 {
+    public int QuestionsCount => _questions.Count;
+    
     private readonly TelegramBotClient _client;
     private readonly Dictionary<long, User> _usersInSession;
     private readonly ILogger<TelegramBot> _logger;
     private readonly Dictionary<string, ITelegramCommand> _commands;
     private readonly Dictionary<string, ICallbackCommand> _callbacks;
     private readonly Dictionary<long, int> _messagesToDelete;
+    private readonly Dictionary<int, Question> _questions;
 
     public TelegramBot(
         ILogger<TelegramBot> logger,
         IEnumerable<ITelegramCommand> telegramCommands,
         IEnumerable<ICallbackCommand> callbackCommands,
-        UserService userService)
+        UserService userService,
+        QuestionsService questionsService)
     {
         _client = new TelegramBotClient(Environment.GetEnvironmentVariable("BOT_TOKEN") ?? string.Empty);
         _logger = logger;
@@ -35,6 +40,8 @@ public class TelegramBot
         _commands = telegramCommands.ToDictionary(t => t.Name);
         _callbacks = callbackCommands.ToDictionary(c => c.Name);
         _messagesToDelete = new Dictionary<long, int>();
+        _questions = questionsService.FindAllQuestions().ToDictionary(q => q.Id);
+        _logger.LogInformation($"Have been loaded {_questions.Count} questions!");
     }
 
     public void AddUser(User user)
@@ -49,11 +56,19 @@ public class TelegramBot
 
     public User? FindUser(long userKey) => !_usersInSession.TryGetValue(userKey, out var user) ? null : user;
 
-    public async Task SendMessage(string text, long chatId) =>
-        await EditAndSendMessage(text, chatId, null, false);
+    public Question? FindQuestion(int questionId) =>
+        !_questions.TryGetValue(questionId, out var question) ? null : question;
 
-    public async Task SendMessageWithButtons(string text, long chatId, IReplyMarkup replyMarkup, bool isMainMenu) =>
-        await EditAndSendMessage(text, chatId, replyMarkup, isMainMenu);
+    public async Task SendMessage(string text, long chatId, bool reWrite = false) =>
+        await EditAndSendMessage(text, chatId, null, false, reWrite);
+
+    public async Task SendMessageWithButtons(
+        string text,
+        long chatId,
+        IReplyMarkup replyMarkup,
+        bool isMainMenu = false,
+        bool reWrite = false) =>
+        await EditAndSendMessage(text, chatId, replyMarkup, isMainMenu, reWrite);
 
     public void Start() => _client.StartReceiving(
         HandleUpdateAsync,
@@ -61,24 +76,54 @@ public class TelegramBot
         new ReceiverOptions(),
         new CancellationTokenSource().Token);
 
-    private async Task EditAndSendMessage(string text, long chatId, IReplyMarkup? replyMarkup, bool isMainMenu)
+    private async Task EditAndSendMessage(
+        string text,
+        long chatId,
+        IReplyMarkup? replyMarkup,
+        bool isMainMenu,
+        bool reWrite)
     {
         if (_messagesToDelete.TryGetValue(chatId, out var messageId))
         {
+            if (reWrite)
+            {
+                var mes = await _client.EditMessageTextAsync(chatId, messageId, text, parseMode: ParseMode.Markdown);
+                if (replyMarkup != null)
+                {
+                    mes = await _client.EditMessageReplyMarkupAsync(
+                        chatId,
+                        mes.MessageId, 
+                        replyMarkup: replyMarkup as InlineKeyboardMarkup);
+                }
+
+                _messagesToDelete.Remove(chatId);
+                if (replyMarkup != null)
+                {
+                    _messagesToDelete.Add(chatId, mes.MessageId);
+                }
+                return;
+            }
+
             await _client.EditMessageReplyMarkupAsync(
                 chatId, 
                 messageId, 
                 new InlineKeyboardMarkup(Array.Empty<InlineKeyboardButton>()));
+            
             _messagesToDelete.Remove(chatId);
         }
 
         if (replyMarkup == null)
         {
-            await _client.SendTextMessageAsync(chatId, text);
+            var mes = await _client.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Markdown);
+            if (reWrite)
+            {
+                _messagesToDelete.Add(chatId, mes.MessageId);
+            }
             return;
         }
 
-        var message = await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup);
+        var message =
+            await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup, parseMode: ParseMode.Markdown);
         if (!isMainMenu)
         {
             _messagesToDelete.Add(chatId, message.MessageId);
