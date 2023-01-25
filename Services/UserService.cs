@@ -40,13 +40,21 @@ public class UserService
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-        return dbContext?.Users.FirstOrDefault(u => u.Key == userKey);
+        return dbContext?.Users
+            .Include(u => u.QuestionsToUsers)
+                .ThenInclude(qtu => qtu.Question)
+            .Include(u => u.SingleAnket)
+            .FirstOrDefault(u => u.Key == userKey);
     }
 
     public List<User> FindAllUsers()
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-        return dbContext.Users.ToList();
+        return dbContext.Users
+            .Include(u => u.QuestionsToUsers)
+                .ThenInclude(qtu => qtu.Question)
+            .Include(u => u.SingleAnket)
+            .ToList();
     }
 }

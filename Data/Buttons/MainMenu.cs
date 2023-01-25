@@ -17,7 +17,19 @@ public class MainMenu
                 new[]
                 {
                     InlineKeyboardButton.WithCallbackData("Парная анкета", "Anket:Pair"),
-                    InlineKeyboardButton.WithCallbackData("Найти пару", "Find:Pair")
+                    InlineKeyboardButton.WithCallbackData("Найти пару", "Find_Pair:Pair")
+                }
+            });
+    }
+
+    public static IReplyMarkup ReturnToMainMenuButton()
+    {
+        return new InlineKeyboardMarkup(
+            new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("Главное меню", "MainMenu")
                 }
             });
     }
