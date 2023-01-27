@@ -39,7 +39,7 @@ public class AnketCallbackCommand : ICallbackCommand
                             }
                         }));
                 break;
-            case "Init" when user.QuestionsToUsers.Count > 0 && user.QuestionsToUsers.Count < client.QuestionsCount:
+            case "Init" when user.QuestionsToUsers.Count > 0 && user.QuestionsToUsers.Count < client.Questions.Count:
                 await client.SendMessageWithButtons(
                     "Вы уже начали проходить анкету! Если хотите продолжить - нажмите кнопку:",
                     user.Key,
@@ -52,7 +52,7 @@ public class AnketCallbackCommand : ICallbackCommand
                             }
                         }));
                 break;
-            case "Init" when user.QuestionsToUsers.Count == client.QuestionsCount:
+            case "Init" when user.QuestionsToUsers.Count == client.Questions.Count:
                 var anket = user.SingleAnket != null
                     ? $"Ваш персональный секретный ключ для анкеты:\n`{user.SingleAnket.Id}`\nВ целях безопасности не сообщайте его постороннему человеку!"
                     : "Мы сохранили ваши ответы, но ваша персональная анкета пока что не сгенерировалась! Если вы видете это сообщение не в первый раз - обратитесь в поддержку!";
@@ -61,6 +61,40 @@ public class AnketCallbackCommand : ICallbackCommand
                     user.Key,
                     MainMenu.ReturnToMainMenuButton());
                 break;
+            case "Redact" when user.QuestionsToUsers.Count < client.Questions.Count:
+                await client.SendMessageWithButtons(
+                    "Вы ещё не закончили анкету! Чтобы редактировать, нужно закончить анкету.\nЖелаете продолжить?",
+                    user.Key,
+                    new InlineKeyboardMarkup(
+                        new[]
+                        {
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Продолжить", $"Question:{user.QuestionsToUsers.Count + 1}")
+                            },
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
+                            }
+                        }));
+                break;
+                case "Redact" when user.QuestionsToUsers.Count == client.Questions.Count:
+                    await client.SendMessageWithButtons(
+                    "Если вы хотите изменить некоторые вопросы в своей анкете - нажмите \"Редактировать\".\nЕсли вы хотите перепройти анкету полностью - нажмите \"Пройти заново\".",
+                    user.Key,
+                    new InlineKeyboardMarkup(
+                        new[]
+                        {
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Редактировать", "Redact:Single")
+                            },
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Пройти заново", "Redact:Restart")
+                            }
+                        }));
+                    break;
             default:
                 throw new Exception("There is not currect data chase for anket!");
         }

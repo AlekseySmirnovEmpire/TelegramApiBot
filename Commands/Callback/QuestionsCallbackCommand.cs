@@ -38,7 +38,7 @@ public class QuestionsCallbackCommand : ICallbackCommand
         if (user.QuestionsToUsers != null && user.QuestionsToUsers.Any())
         {
             questionId = user.QuestionsToUsers.Count > questionId ? user.QuestionsToUsers.Count : questionId;
-            if (user.QuestionsToUsers.Count == client.QuestionsCount)
+            if (user.QuestionsToUsers.Count == client.Questions.Count)
             {
                 await client.SendMessageWithButtons(
                     "Вы уже отвечали на вопросы!",
@@ -46,7 +46,7 @@ public class QuestionsCallbackCommand : ICallbackCommand
                     MainMenu.ReturnToMainMenuButton());
             }
         }
-        if (client.QuestionsCount == questionId && data.Count > 2)
+        if (client.Questions.Count == questionId && data.Count > 2)
         {
             _questionsService.InitAnswer(user, questionId, data[2]);
             _anketService.GenerateSingleAnket(user);
@@ -83,7 +83,7 @@ public class QuestionsCallbackCommand : ICallbackCommand
     private static async Task InitQuestion(TelegramBot client, long chatId, Question question)
     {
         await client.SendMessageWithButtons(
-            $"{question.Id}/{client.QuestionsCount}: {question.Text}",
+            $"{question.Id}/{client.Questions.Count}: {question.Text}",
             chatId,
             QuestionsButtons.GetButtons(question.Id),
             reWrite: true);

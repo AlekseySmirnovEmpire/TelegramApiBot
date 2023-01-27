@@ -1,4 +1,5 @@
-﻿using TelegramApiBot.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TelegramApiBot.Data;
 using TelegramApiBot.Data.Entities;
 using TelegramApiBot.Data.Types;
 
@@ -21,6 +22,17 @@ public class QuestionsService
         return dbContext.Questions.ToList();
     }
 
+    public void UpdateAnswer(User user, int questionId, string answer)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+        user.QuestionsToUsers.First(q => q.QuestionId == questionId).Answer = answer;
+        dbContext.Database.ExecuteSqlRaw(
+            @$"UPDATE ""QuestionsToUsers"" SET ""Answer"" = '{answer.GetAnswer()}' WHERE ""UserId"" = '{user.Id}' AND ""QuestionId"" = {questionId}");
+        dbContext.SaveChanges();
+    }
+
     public void InitAnswer(User user, int questionId, string answer)
     {
         using var scope = _serviceScopeFactory.CreateScope();
@@ -38,5 +50,31 @@ public class QuestionsService
 
         user.QuestionsToUsers ??= new List<QuestionsToUsers>();
         user.QuestionsToUsers.Add(userAnswer);
+    }
+
+    public void ClearAllUsersQuestions(User user)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+        if (dbContext == null)
+        {
+            throw new Exception("There is no db context!");
+        }
+
+        if (user.SingleAnket != null)
+        {
+            dbContext.SingleAnkets.Remove(user.SingleAnket);
+            dbContext.SaveChanges();
+            user.SingleAnket = null;
+        }
+
+        if (user.QuestionsToUsers == null || !user.QuestionsToUsers.Any())
+        {
+            return;
+        }
+
+        dbContext.QuestionsToUsers.RemoveRange(user.QuestionsToUsers);
+        dbContext.SaveChanges();
+        user.QuestionsToUsers = new List<QuestionsToUsers>();
     }
 }

@@ -28,6 +28,9 @@ builder.Services.AddSingleton<ICallbackCommand, QuestionsCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, AnketCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, FindPairCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, MainMenuCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, RedactCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, PagerCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, RewriterCallbackCommand>();
 
 var app = builder.Build();
 
