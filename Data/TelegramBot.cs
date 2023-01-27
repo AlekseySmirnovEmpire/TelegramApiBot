@@ -14,15 +14,14 @@ namespace TelegramApiBot.Data;
 
 public class TelegramBot
 {
-    public int QuestionsCount => _questions.Count;
-    
     private readonly TelegramBotClient _client;
     private readonly Dictionary<long, User> _usersInSession;
     private readonly ILogger<TelegramBot> _logger;
     private readonly Dictionary<string, ITelegramCommand> _commands;
     private readonly Dictionary<string, ICallbackCommand> _callbacks;
     private readonly Dictionary<long, int> _messagesToDelete;
-    private readonly Dictionary<int, Question> _questions;
+
+    public Dictionary<int, Question> Questions { get; }
 
     public TelegramBot(
         ILogger<TelegramBot> logger,
@@ -40,8 +39,8 @@ public class TelegramBot
         _commands = telegramCommands.ToDictionary(t => t.Name);
         _callbacks = callbackCommands.ToDictionary(c => c.Name);
         _messagesToDelete = new Dictionary<long, int>();
-        _questions = questionsService.FindAllQuestions().ToDictionary(q => q.Id);
-        _logger.LogInformation($"Have been loaded {_questions.Count} questions!");
+        Questions = questionsService.FindAllQuestions().ToDictionary(q => q.Id);
+        _logger.LogInformation($"Have been loaded {Questions.Count} questions!");
     }
 
     public void AddUser(User user)
@@ -57,7 +56,7 @@ public class TelegramBot
     public User? FindUser(long userKey) => !_usersInSession.TryGetValue(userKey, out var user) ? null : user;
 
     public Question? FindQuestion(int questionId) =>
-        !_questions.TryGetValue(questionId, out var question) ? null : question;
+        !Questions.TryGetValue(questionId, out var question) ? null : question;
 
     public async Task SendMessage(string text, long chatId, bool reWrite = false) =>
         await EditAndSendMessage(text, chatId, null, false, reWrite);

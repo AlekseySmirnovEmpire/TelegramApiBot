@@ -11,7 +11,10 @@ public class MainMenu
             {
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Пройти анкету", "Anket:Init"),
+                    InlineKeyboardButton.WithCallbackData("Пройти анкету", "Anket:Init")
+                },
+                new[]
+                {
                     InlineKeyboardButton.WithCallbackData("Редактировать анкету", "Anket:Redact")
                 },
                 new[]
