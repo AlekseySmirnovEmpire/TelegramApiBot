@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TelegramApiBot.Commands;
+using TelegramApiBot.Commands.Callback;
 using TelegramApiBot.Configuration;
 using TelegramApiBot.Data;
 using TelegramApiBot.Services;
@@ -16,7 +17,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddSingleton<TelegramBot>();
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddSingleton<StartTelegramCommand>();
+builder.Services.AddSingleton<QuestionsService>();
+builder.Services.AddSingleton<AnketService>();
+builder.Services.AddSingleton<PairService>();
+builder.Services.AddSingleton<BlackListService>();
+
+builder.Services.AddSingleton<ITelegramCommand, StartTelegramCommand>();
+builder.Services.AddSingleton<ITelegramCommand, MainMenuTelegramCommand>();
+
+builder.Services.AddSingleton<ICallbackCommand, AgeConfirmTelegramCommand>();
+builder.Services.AddSingleton<ICallbackCommand, QuestionsCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, AnketCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, FindPairCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, MainMenuCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, RedactCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, PagerCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, RewriterCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, PairCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, BlackListCallbackCommand>();
 
 var app = builder.Build();
 
