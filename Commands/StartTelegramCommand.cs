@@ -1,6 +1,7 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramApiBot.Data;
+using TelegramApiBot.Data.Buttons;
 using TelegramApiBot.Data.Types;
 using TelegramApiBot.Services;
 using User = TelegramApiBot.Data.Entities.User;
@@ -44,15 +45,13 @@ public class StartTelegramCommand : ITelegramCommand
             await client.SendMessageWithButtons(
                 "Для продолжения пользования ботом Вы должны быть старше 18 лет.\nВы подтверждаете, что вам больше 18 лет?",
                 user.Key,
-                new InlineKeyboardMarkup(
-                    new[]
-                    {
-                        new[]
-                        {
-                            InlineKeyboardButton.WithCallbackData("Да", $"AgeConfirming:{user.Key}:Yes"),
-                            InlineKeyboardButton.WithCallbackData("Нет", $"AgeConfirming:{user.Key}:No"), 
-                        }
-                    }));
+                AgeConfirm.AgeConfirmButtons());
+            return;
+        }
+
+        if (user.AgeConfirmed)
+        {
+            await MainMenuService.SendMainMenu(client, update);
         }
     }
 }
