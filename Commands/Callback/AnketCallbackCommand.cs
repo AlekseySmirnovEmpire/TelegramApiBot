@@ -8,6 +8,7 @@ namespace TelegramApiBot.Commands.Callback;
 public class AnketCallbackCommand : ICallbackCommand
 {
     public string Name => "Anket";
+
     public async Task Execute(TelegramBot client, Update update)
     {
         var data = update.CallbackQuery?.Data?.Split(":").ToList();
@@ -48,7 +49,8 @@ public class AnketCallbackCommand : ICallbackCommand
                         {
                             new[]
                             {
-                                InlineKeyboardButton.WithCallbackData("Продолжить", $"Question:{user.QuestionsToUsers.Count + 1}")
+                                InlineKeyboardButton.WithCallbackData("Продолжить",
+                                    $"Question:{(user.QuestionsToUsers?.Count ?? 0) + 1}")
                             }
                         }));
                 break;
@@ -57,7 +59,7 @@ public class AnketCallbackCommand : ICallbackCommand
                     ? $"Ваш персональный секретный ключ для анкеты:\n`{user.SingleAnket.Id}`\nВ целях безопасности не сообщайте его постороннему человеку!"
                     : "Мы сохранили ваши ответы, но ваша персональная анкета пока что не сгенерировалась! Если вы видете это сообщение не в первый раз - обратитесь в поддержку!";
                 await client.SendMessageWithButtons(
-                    $"Вы уже прошли анкету!\n{anket}", 
+                    $"Вы уже прошли анкету!\n{anket}",
                     user.Key,
                     MainMenu.ReturnToMainMenuButton());
                 break;
@@ -70,7 +72,8 @@ public class AnketCallbackCommand : ICallbackCommand
                         {
                             new[]
                             {
-                                InlineKeyboardButton.WithCallbackData("Продолжить", $"Question:{user.QuestionsToUsers.Count + 1}")
+                                InlineKeyboardButton.WithCallbackData("Продолжить",
+                                    $"Question:{(user.QuestionsToUsers?.Count ?? 0) + 1}")
                             },
                             new[]
                             {
@@ -78,8 +81,8 @@ public class AnketCallbackCommand : ICallbackCommand
                             }
                         }));
                 break;
-                case "Redact" when user.QuestionsToUsers.Count == client.Questions.Count:
-                    await client.SendMessageWithButtons(
+            case "Redact" when user.QuestionsToUsers.Count == client.Questions.Count:
+                await client.SendMessageWithButtons(
                     "Если вы хотите изменить некоторые вопросы в своей анкете - нажмите \"Редактировать\".\nЕсли вы хотите перепройти анкету полностью - нажмите \"Пройти заново\".",
                     user.Key,
                     new InlineKeyboardMarkup(
@@ -94,7 +97,28 @@ public class AnketCallbackCommand : ICallbackCommand
                                 InlineKeyboardButton.WithCallbackData("Пройти заново", "Redact:Restart")
                             }
                         }));
-                    break;
+                break;
+            case "Pair":
+                await client.SendMessageWithButtons(
+                    "Если вы проходили анкету, но забыли свой код - нажмите \"Получить код\".\nЕсли вы хотите пройти парный опрос - нажмите \"Указать пару\".\nЕсли вы уже проходили парную анкету и хотите её ещё раз посмотреть - нажмите \"Мои парные анкеты\".",
+                    user.Key,
+                    new InlineKeyboardMarkup(
+                        new[]
+                        {
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Получить код", "Pair:Get:My")
+                            },
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Указать пару", "Pair:Set:Init")
+                            },
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData("Мои парные анкеты", "Pager:Pairs:1")
+                            }
+                        }));
+                break;
             default:
                 throw new Exception("There is not currect data chase for anket!");
         }

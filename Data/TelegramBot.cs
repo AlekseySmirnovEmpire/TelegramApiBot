@@ -20,6 +20,8 @@ public class TelegramBot
     private readonly Dictionary<string, ITelegramCommand> _commands;
     private readonly Dictionary<string, ICallbackCommand> _callbacks;
     private readonly Dictionary<long, int> _messagesToDelete;
+    private readonly PairService _pairService;
+    public Dictionary<long, bool> UsersForWaitingPairId;
 
     public Dictionary<int, Question> Questions { get; }
 
@@ -28,10 +30,12 @@ public class TelegramBot
         IEnumerable<ITelegramCommand> telegramCommands,
         IEnumerable<ICallbackCommand> callbackCommands,
         UserService userService,
-        QuestionsService questionsService)
+        QuestionsService questionsService,
+        PairService pairService)
     {
         _client = new TelegramBotClient(Environment.GetEnvironmentVariable("BOT_TOKEN") ?? string.Empty);
         _logger = logger;
+        _pairService = pairService;
 
         _usersInSession = userService.FindAllUsers().ToDictionary(u => u.Key);
         _logger.LogInformation($"Loaded {_usersInSession.Count} users from DB!");
@@ -40,6 +44,7 @@ public class TelegramBot
         _callbacks = callbackCommands.ToDictionary(c => c.Name);
         _messagesToDelete = new Dictionary<long, int>();
         Questions = questionsService.FindAllQuestions().ToDictionary(q => q.Id);
+        UsersForWaitingPairId = new Dictionary<long, bool>();
         _logger.LogInformation($"Have been loaded {Questions.Count} questions!");
     }
 
@@ -59,15 +64,14 @@ public class TelegramBot
         !Questions.TryGetValue(questionId, out var question) ? null : question;
 
     public async Task SendMessage(string text, long chatId, bool reWrite = false) =>
-        await EditAndSendMessage(text, chatId, null, false, reWrite);
+        await EditAndSendMessage(text, chatId, null, reWrite);
 
     public async Task SendMessageWithButtons(
         string text,
         long chatId,
         IReplyMarkup replyMarkup,
-        bool isMainMenu = false,
         bool reWrite = false) =>
-        await EditAndSendMessage(text, chatId, replyMarkup, isMainMenu, reWrite);
+        await EditAndSendMessage(text, chatId, replyMarkup, reWrite);
 
     public void Start() => _client.StartReceiving(
         HandleUpdateAsync,
@@ -79,7 +83,6 @@ public class TelegramBot
         string text,
         long chatId,
         IReplyMarkup? replyMarkup,
-        bool isMainMenu,
         bool reWrite)
     {
         if (_messagesToDelete.TryGetValue(chatId, out var messageId))
@@ -123,10 +126,8 @@ public class TelegramBot
 
         var message =
             await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup, parseMode: ParseMode.Markdown);
-        if (!isMainMenu)
-        {
-            _messagesToDelete.Add(chatId, message.MessageId);
-        }
+        
+        _messagesToDelete.Add(chatId, message.MessageId);
     }
 
     private Task HandleErrorAsync(
@@ -160,8 +161,15 @@ public class TelegramBot
                         return;
                     }
 
-                    if (!_commands.TryGetValue(update.Message.Text.ToLower(), out var command))
+                    if (!_commands.TryGetValue(update.Message.Text.Trim().ToLower(), out var command))
                     {
+                        if (UsersForWaitingPairId.TryGetValue(update.Message.From.Id, out var val) && val &&
+                            Guid.TryParse(update.Message.Text.Trim(), out var anketGuid))
+                        {
+                            UsersForWaitingPairId.Remove(update.Message.From.Id);
+                            await _pairService.InitPair(this, _usersInSession[update.Message.From.Id], anketGuid);
+                            return;
+                        }
                         await NoCommandMessage.Answer(this, update);
                         return;
                     }

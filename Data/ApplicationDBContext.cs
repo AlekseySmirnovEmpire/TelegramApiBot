@@ -17,6 +17,10 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<QuestionsToUsers> QuestionsToUsers { get; set; }
 
     public DbSet<SingleAnket> SingleAnkets { get; set; }
+    
+    public DbSet<BlackList> BlackLists { get; set; }
+    
+    public DbSet<PairAnket> PairAnkets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,8 +30,10 @@ public sealed class ApplicationDbContext : DbContext
         modelBuilder.Entity<Question>().ToTable("Questions");
         modelBuilder.Entity<QuestionsToUsers>().ToTable("QuestionsToUsers");
         modelBuilder.Entity<SingleAnket>().ToTable("SingleAnket");
+        modelBuilder.Entity<BlackList>().ToTable("BlackList");
 
         modelBuilder.Entity<QuestionsToUsers>().HasKey(qtu => new { qtu.UserId, qtu.QuestionId });
+        modelBuilder.Entity<BlackList>().HasKey(bl => new { bl.UserId, bl.BlockedUserKey });
 
         modelBuilder.Entity<User>()
             .HasMany(u => u.QuestionsToUsers)
@@ -51,13 +57,31 @@ public sealed class ApplicationDbContext : DbContext
             .WithOne(sa => sa.User)
             .HasForeignKey<SingleAnket>(sa => sa.UserId);
 
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.BlackList)
+            .WithOne(bl => bl.User)
+            .HasForeignKey(bl => bl.UserId);
+        modelBuilder.Entity<BlackList>()
+            .HasOne(bl => bl.User)
+            .WithMany(u => u.BlackList)
+            .HasForeignKey(bl => bl.UserId);
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.PairAnkets)
+            .WithOne(pa => pa.User)
+            .HasForeignKey(pa => pa.UserId);
+        modelBuilder.Entity<PairAnket>()
+            .HasOne(pa => pa.User)
+            .WithMany(u => u.PairAnkets)
+            .HasForeignKey(pa => pa.UserId);
+
         // modelBuilder.Entity<User>()
-        //     .HasMany(u => u.Questions)
-        //     .WithMany(q => q.Users)
+        //     .HasMany(u => u.BlackList)
+        //     .WithMany(q => q.BlackList)
         //     .UsingEntity<Dictionary<string, object>>(
         //         "QuestionsToUsers",
         //         j => j
-        //             .HasOne<Question>()
+        //             .HasOne<User>()
         //             .WithMany()
         //             .HasForeignKey("QuestionId")
         //             .HasConstraintName("FK_QuestionsToUsers_QuestionId")

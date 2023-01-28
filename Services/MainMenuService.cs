@@ -19,7 +19,6 @@ public class MainMenuService
         await client.SendMessageWithButtons(
             $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
             user.Key,
-            MainMenu.MainMenuButtons(),
-            true);
+            MainMenu.MainMenuButtons());
     }
 }

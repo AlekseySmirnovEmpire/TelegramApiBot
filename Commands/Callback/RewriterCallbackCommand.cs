@@ -55,8 +55,13 @@ public class RewriterCallbackCommand : ICallbackCommand
         _questionsService.UpdateAnswer(user, questionId, data.Last());
         _anketService.GenerateSingleAnket(user);
 
+        foreach (var pairAnket in user.PairAnkets)
+        {
+            _anketService.GeneratePairAnket(user, client.FindUser(pairAnket.PairKey));
+        }
+
         await client.SendMessageWithButtons(
-            $"Ваша анкета успешно отредактирована! ID вашей анкеты:\n`{user.SingleAnket.Id}`\nУбедительная просьба: в целях безопасности не сообщайте его посторонним лицам!", 
+            $"Ваша анкета успешно отредактирована! Код вашей анкеты:\n`{user.SingleAnket.Id}`\nУбедительная просьба: в целях безопасности не сообщайте его посторонним лицам!", 
             user.Key, 
             new InlineKeyboardMarkup(
                 new[]
