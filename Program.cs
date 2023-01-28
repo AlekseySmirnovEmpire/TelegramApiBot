@@ -19,6 +19,8 @@ builder.Services.AddSingleton<TelegramBot>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<QuestionsService>();
 builder.Services.AddSingleton<AnketService>();
+builder.Services.AddSingleton<PairService>();
+builder.Services.AddSingleton<BlackListService>();
 
 builder.Services.AddSingleton<ITelegramCommand, StartTelegramCommand>();
 builder.Services.AddSingleton<ITelegramCommand, MainMenuTelegramCommand>();
@@ -31,6 +33,8 @@ builder.Services.AddSingleton<ICallbackCommand, MainMenuCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, RedactCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, PagerCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, RewriterCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, PairCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, BlackListCallbackCommand>();
 
 var app = builder.Build();
 

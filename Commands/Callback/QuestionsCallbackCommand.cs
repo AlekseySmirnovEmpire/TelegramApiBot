@@ -50,6 +50,10 @@ public class QuestionsCallbackCommand : ICallbackCommand
         {
             _questionsService.InitAnswer(user, questionId, data[2]);
             _anketService.GenerateSingleAnket(user);
+            user.PairAnkets.ForEach(pairAnket =>
+            {
+                _anketService.GeneratePairAnket(user, client.FindUser(pairAnket.PairKey));
+            });
             var anket = user.SingleAnket != null
                 ? $"Ваш персональный секретный ключ для анкеты:\n`{user.SingleAnket.Id}`\nВ целях безопасности не сообщайте его постороннему человеку!"
                 : "Мы сохранили ваши ответы, но ваша персональная анкета пока что не сгенерировалась!";

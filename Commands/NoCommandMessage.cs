@@ -22,7 +22,7 @@ public class NoCommandMessage
     {
         if (update.Message?.Text != null)
         {
-            return "Упс! такой команды нет!";
+            return "Не-а, не правильно!";
         }
 
         if (update.Message?.Audio != null || update.Message?.Voice != null)

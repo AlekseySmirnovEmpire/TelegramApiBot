@@ -24,6 +24,9 @@ public class UserService
 
         dbContext.Users.Add(user);
         dbContext.SaveChanges();
+        user.QuestionsToUsers = new List<QuestionsToUsers>();
+        user.BlackList = new List<BlackList>();
+        user.PairAnkets = new List<PairAnket>();
         return user;
     }
 
@@ -44,6 +47,8 @@ public class UserService
             .Include(u => u.QuestionsToUsers)
                 .ThenInclude(qtu => qtu.Question)
             .Include(u => u.SingleAnket)
+            .Include(u => u.BlackList)
+            .Include(u => u.PairAnkets)
             .FirstOrDefault(u => u.Key == userKey);
     }
 
@@ -55,6 +60,8 @@ public class UserService
             .Include(u => u.QuestionsToUsers)
                 .ThenInclude(qtu => qtu.Question)
             .Include(u => u.SingleAnket)
+            .Include(u => u.BlackList)
+            .Include(u => u.PairAnkets)
             .ToList();
     }
 }
