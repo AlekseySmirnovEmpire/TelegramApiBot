@@ -55,7 +55,7 @@ public class AnketService
             var file = new FileInfo(_pairAnket);
             if (!file.Exists)
             {
-                return;
+                throw new Exception($"There is no file in {_pairAnket}");
             }
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -180,7 +180,7 @@ public class AnketService
             var file = new FileInfo(_singleAnket);
             if (!file.Exists)
             {
-                return;
+                throw new Exception($"There is no file in {_singleAnket}");
             }
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
