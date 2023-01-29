@@ -163,12 +163,17 @@ public class TelegramBot
 
                     if (!_commands.TryGetValue(update.Message.Text.Trim().ToLower(), out var command))
                     {
-                        if (UsersForWaitingPairId.TryGetValue(update.Message.From.Id, out var val) && val &&
-                            Guid.TryParse(update.Message.Text.Trim(), out var anketGuid))
+                        if (UsersForWaitingPairId.TryGetValue(update.Message.From.Id, out var val) && val)
                         {
                             UsersForWaitingPairId.Remove(update.Message.From.Id);
-                            await _pairService.InitPair(this, _usersInSession[update.Message.From.Id], anketGuid);
-                            return;
+                            if (Guid.TryParse(update.Message.Text.Trim(), out var anketGuid))
+                            {
+                                await _pairService.InitPair(
+                                    this,
+                                    _usersInSession[update.Message.From.Id],
+                                    anketGuid);
+                                return;
+                            }
                         }
                         await NoCommandMessage.Answer(this, update);
                         return;
