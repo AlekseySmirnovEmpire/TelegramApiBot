@@ -184,12 +184,7 @@ public class AnketService
 
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-            var questionList = dbContext.QuestionsToUsers
-                .Include(qtu => qtu.User)
-                .Include(qtu => qtu.Question)
-                .Where(qtu => qtu.UserId == user.Id)
-                .OrderBy(qtu => qtu.QuestionId)
-                .ToList();
+            var questionList = _questionsService.FindUserQuestionsByUserId(user.Id);
 
             questionList.ForEach(qtu =>
             {
