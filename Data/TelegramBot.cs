@@ -103,6 +103,7 @@ public class TelegramBot
             }
 
             _messagesToDelete.Remove(chatId);
+            return;
         }
         
         var mes = await _client.SendTextMessageAsync(
@@ -119,6 +120,12 @@ public class TelegramBot
             }
             
             _messagesToDelete.Add(chatId, mes.MessageId);
+            return;
+        }
+        
+        if (_messagesToDelete.TryGetValue(chatId, out _))
+        {
+            _messagesToDelete.Remove(chatId);
         }
     }
 
