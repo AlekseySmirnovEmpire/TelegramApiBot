@@ -12,19 +12,22 @@ public class AnketService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<AnketService> _logger;
+    private readonly QuestionsService _questionsService;
 
-    private readonly string _singleAnket = new Regex(@"(?<!fil)[A-Za-z]:\\+[\S\s]*?(?=\\+bin)").Match(
-        Path.GetDirectoryName(System.Reflection
-            .Assembly.GetExecutingAssembly().CodeBase)).Value + "\\src\\SingleAnket.xlsx";
+    private readonly string _singleAnket = Environment.GetEnvironmentVariable("ASPNETCORE_SingleAnket_Path") 
+                                           ?? string.Empty;
 
-    private readonly string _pairAnket = new Regex(@"(?<!fil)[A-Za-z]:\\+[\S\s]*?(?=\\+bin)").Match(
-        Path.GetDirectoryName(System.Reflection
-            .Assembly.GetExecutingAssembly().CodeBase)).Value + "\\src\\PairAnket.xlsx";
+    private readonly string _pairAnket = Environment.GetEnvironmentVariable("ASPNETCORE_PairAnket_Path") 
+                                         ?? string.Empty;
 
-    public AnketService(IServiceScopeFactory serviceScopeFactory, ILogger<AnketService> logger)
+    public AnketService(
+        IServiceScopeFactory serviceScopeFactory, 
+        ILogger<AnketService> logger, 
+        QuestionsService questionsService)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
+        _questionsService = questionsService;
     }
 
     public void ChangeAnketId(User user)
@@ -65,19 +68,10 @@ public class AnketService
 
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
             var shortList = new NameValueCollection();
-            var userQuestionList = dbContext.QuestionsToUsers
-                .Include(qtu => qtu.User)
-                .Include(qtu => qtu.Question)
-                .Where(qtu => qtu.UserId == user.Id)
-                .OrderBy(qtu => qtu.QuestionId)
-                .ToList();
-            var pairQuestionList = dbContext.QuestionsToUsers
-                .Include(qtu => qtu.User)
-                .Include(qtu => qtu.Question)
-                .Where(qtu => qtu.UserId == pair.Id)
-                .OrderBy(qtu => qtu.QuestionId)
-                .ToList();
+            var userQuestionList = _questionsService.FindUserQuestionsByUserId(user.Id);
+            var pairQuestionList = _questionsService.FindUserQuestionsByUserId(pair.Id);
 
             foreach (var userQuestion in userQuestionList)
             {
