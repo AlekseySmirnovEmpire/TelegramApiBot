@@ -63,8 +63,8 @@ public class TelegramBot
     public Question? FindQuestion(int questionId) =>
         !Questions.TryGetValue(questionId, out var question) ? null : question;
 
-    public async Task SendMessage(string text, long chatId, bool reWrite = false) =>
-        await EditAndSendMessage(text, chatId, null, reWrite);
+    public async Task SendMessage(string text, long chatId) =>
+        await EditAndSendMessage(text, chatId, null, false);
 
     public async Task SendMessageWithButtons(
         string text,
@@ -85,49 +85,56 @@ public class TelegramBot
         IReplyMarkup? replyMarkup,
         bool reWrite)
     {
-        if (_messagesToDelete.TryGetValue(chatId, out var messageId))
+        if (_messagesToDelete.TryGetValue(chatId, out var messageId) && reWrite)
         {
-            if (reWrite)
+            var message = await _client.EditMessageTextAsync(
+                chatId,
+                messageId,
+                text,
+                parseMode: ParseMode.Markdown);
+            if (replyMarkup != null)
             {
-                var mes = await _client.EditMessageTextAsync(chatId, messageId, text, parseMode: ParseMode.Markdown);
-                if (replyMarkup != null)
-                {
-                    mes = await _client.EditMessageReplyMarkupAsync(
-                        chatId,
-                        mes.MessageId, 
-                        replyMarkup: replyMarkup as InlineKeyboardMarkup);
-                }
-
-                _messagesToDelete.Remove(chatId);
-                if (replyMarkup != null)
-                {
-                    _messagesToDelete.Add(chatId, mes.MessageId);
-                }
+                message = await _client.EditMessageReplyMarkupAsync(
+                    chatId, 
+                    message.MessageId, 
+                    replyMarkup: replyMarkup as InlineKeyboardMarkup);
+                _messagesToDelete[chatId] = message.MessageId;
                 return;
             }
 
-            await _client.EditMessageReplyMarkupAsync(
-                chatId, 
-                messageId, 
-                new InlineKeyboardMarkup(Array.Empty<InlineKeyboardButton>()));
-            
             _messagesToDelete.Remove(chatId);
         }
-
-        if (replyMarkup == null)
+        
+        var mes = await _client.SendTextMessageAsync(
+                chatId,
+                text,
+                replyMarkup: replyMarkup,
+                parseMode: ParseMode.Markdown);
+        if (replyMarkup != null)
         {
-            var mes = await _client.SendTextMessageAsync(chatId, text, parseMode: ParseMode.Markdown);
-            if (reWrite)
+            if (_messagesToDelete.TryGetValue(chatId, out _))
             {
-                _messagesToDelete.Add(chatId, mes.MessageId);
+                _messagesToDelete[chatId] = mes.MessageId;
+                return;
             }
+            
+            _messagesToDelete.Add(chatId, mes.MessageId);
+        }
+    }
+
+    private async Task DeleteMessageButtons(User? user)
+    {
+        if (user == null || !_messagesToDelete.TryGetValue(user.Key, out var messageId))
+        {
             return;
         }
 
-        var message =
-            await _client.SendTextMessageAsync(chatId, text, replyMarkup: replyMarkup, parseMode: ParseMode.Markdown);
-        
-        _messagesToDelete.Add(chatId, message.MessageId);
+        var message = await _client.EditMessageReplyMarkupAsync(
+            user.Key,
+            messageId, 
+            new InlineKeyboardMarkup(Array.Empty<InlineKeyboardButton>()));
+
+        _messagesToDelete[user.Key] = message.MessageId;
     }
 
     private Task HandleErrorAsync(
@@ -146,6 +153,7 @@ public class TelegramBot
     {
         try
         {
+            await DeleteMessageButtons(FindUser(update.CallbackQuery?.From.Id ?? update.Message.From.Id));
             switch (update.Type)
             {
                 case UpdateType.Message:
