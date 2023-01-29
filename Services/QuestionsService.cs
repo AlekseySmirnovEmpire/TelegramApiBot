@@ -22,6 +22,19 @@ public class QuestionsService
         return dbContext.Questions.ToList();
     }
 
+    public List<QuestionsToUsers> FindUserQuestionsByUserId(Guid userId)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+        
+        return dbContext.QuestionsToUsers
+            .Include(qtu => qtu.User)
+            .Include(qtu => qtu.Question)
+            .Where(qtu => qtu.UserId == userId)
+            .OrderBy(qtu => qtu.QuestionId)
+            .ToList();
+    }
+
     public void UpdateAnswer(User user, int questionId, string answer)
     {
         using var scope = _serviceScopeFactory.CreateScope();

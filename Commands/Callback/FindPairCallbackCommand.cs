@@ -1,5 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using TelegramApiBot.Data;
+using TelegramApiBot.Data.Buttons;
 using TelegramApiBot.Data.Types;
 using TelegramApiBot.Services;
 
@@ -19,16 +20,22 @@ public class FindPairCallbackCommand : ICallbackCommand
         switch (user.SubscribeType)
         {
             case SubscribeTypeEnum.None:
-                await client.SendMessage("Это платный контент! Оформите подписку, чтобы им воспользоваться!", user.Key);
-                await MainMenuService.SendMainMenu(client, update);
+                await client.SendMessageWithButtons(
+                    "Это платный контент! Оформите подписку, чтобы им воспользоваться!",
+                    user.Key,
+                    MainMenu.ReturnToMainMenuButton());
                 break;
             case SubscribeTypeEnum.Default:
-                await client.SendMessage("Контента пока нет, но вы держитесь!", user.Key);
-                await MainMenuService.SendMainMenu(client, update);
+                await client.SendMessageWithButtons(
+                    "Контента пока нет, но вы держитесь!",
+                    user.Key,
+                    MainMenu.ReturnToMainMenuButton());
                 break;
             case SubscribeTypeEnum.Special:
-                await client.SendMessage("Контента пока нет, но вы держитесь!", user.Key);
-                await MainMenuService.SendMainMenu(client, update);
+                await client.SendMessageWithButtons(
+                    "Контента пока нет, но вы держитесь!",
+                    user.Key,
+                    MainMenu.ReturnToMainMenuButton());
                 break;
             default:
                 throw new Exception($"There is something wrong with {user.Key} subscribe in DB!");
