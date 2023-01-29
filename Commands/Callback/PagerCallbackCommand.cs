@@ -138,9 +138,14 @@ public class PagerCallbackCommand : ICallbackCommand
             
         }
 
-        if (end != client.Questions.Count)
+        if (end != client.Questions.Count && type == PagerTypeEnum.Question)
         {
             buttons.Add(InlineKeyboardButton.WithCallbackData(">>", $"Pager:Question:{pageNumber + 1}"));
+        }
+
+        if (end != user.PairAnkets.Count && type == PagerTypeEnum.Pairs)
+        {
+            buttons.Add(InlineKeyboardButton.WithCallbackData(">>", $"Pager:Pairs:{pageNumber + 1}"));
         }
 
         await client.SendMessageWithButtons(
