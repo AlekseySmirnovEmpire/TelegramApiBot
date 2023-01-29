@@ -67,9 +67,10 @@ public class PairService
 
         if (user.BlackList.Any(bl => bl.BlockedUserKey == pair.Key))
         {
-            await client.SendMessage(
+            await client.SendMessageWithButtons(
                 "Данный пользователь находится у вас в чёрном списке! Удалите его оттуда, прежде чем создавать с ним парную анкету!",
-                user.Key);
+                user.Key,
+                MainMenu.ReturnToMainMenuButton());
             return;
         }
 
@@ -82,9 +83,10 @@ public class PairService
             return;
         }
 
-        await client.SendMessage(
+        await client.SendMessageWithButtons(
             "Вашей паре был отправлен запрос, анкета появится сразу как только запрос будет подтверждён",
-            user.Key);
+            user.Key,
+            MainMenu.ReturnToMainMenuButton());
         await client.SendMessageWithButtons(
             $"Пользователь [{user.NickName ?? user.Name}](tg://user?id={user.Key}) хочет отметить вас как свою пару, вы принимаете его запрос?",
             pair.Key,

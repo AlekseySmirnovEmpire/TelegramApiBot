@@ -90,7 +90,7 @@ public class AnketCallbackCommand : ICallbackCommand
                         {
                             new[]
                             {
-                                InlineKeyboardButton.WithCallbackData("Редактировать", "Redact:Single")
+                                InlineKeyboardButton.WithCallbackData("Редактировать", "Pager:Question:Init")
                             },
                             new[]
                             {
