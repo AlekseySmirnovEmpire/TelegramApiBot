@@ -206,7 +206,7 @@ public class AnketService
             dbContext.SaveChanges();
         }
         
-        var pairAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
+        var pairAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == user.Key);
         if (pairAnket == null)
         {
             return;
