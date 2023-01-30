@@ -198,6 +198,10 @@ public class TelegramBot
                     break;
                 }
                 case UpdateType.CallbackQuery:
+                    if (UsersForWaitingPairId.TryGetValue(update.CallbackQuery.From.Id, out var value) && value)
+                    {
+                        UsersForWaitingPairId.Remove(update.CallbackQuery.From.Id);
+                    }
                     var data = update.CallbackQuery?.Data?.Split(":");
                     if (data == null || !data.Any())
                     {
