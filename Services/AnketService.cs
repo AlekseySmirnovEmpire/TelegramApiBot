@@ -133,6 +133,7 @@ public class AnketService
             };
 
             RemovePairAnket(user, pair);
+            RemovePairAnket(pair, user);
             
             AddPairAnket(user, pairAnketForUser);
             AddPairAnket(pair, pairAnketForPair);
@@ -199,21 +200,12 @@ public class AnketService
         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
         
         var userAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
-        if (userAnket != null)
-        {
-            user.PairAnkets.Remove(userAnket);
-            dbContext.PairAnkets.Remove(userAnket);
-            dbContext.SaveChanges();
-        }
-        
-        var pairAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == user.Key);
-        if (pairAnket == null)
+        if (userAnket == null)
         {
             return;
         }
-
-        pair.PairAnkets.Remove(pairAnket);
-        dbContext.PairAnkets.Remove(pairAnket);
+        user.PairAnkets.Remove(userAnket);
+        dbContext.PairAnkets.Remove(userAnket);
         dbContext.SaveChanges();
     }
 
