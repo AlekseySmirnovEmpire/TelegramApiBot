@@ -66,9 +66,6 @@ public class AnketService
             var sheet = excelStream.Workbook.Worksheets.First();
             sheet.Name = $"Анкета - {user.Name} - {pair.Name}";
 
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-
             var shortList = new NameValueCollection();
             var userQuestionList = _questionsService.FindUserQuestionsByUserId(user.Id);
             var pairQuestionList = _questionsService.FindUserQuestionsByUserId(pair.Id);
@@ -135,31 +132,10 @@ public class AnketService
                 CreatedAt = DateTime.Now
             };
 
-            var userAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
-            if (userAnket != null)
-            {
-                user.PairAnkets.Remove(userAnket);
-                dbContext.PairAnkets.Remove(userAnket);
-                dbContext.SaveChanges();
-            }
-
-            var pairAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
-            if (pairAnket != null)
-            {
-                pair.PairAnkets.Remove(pairAnket);
-                dbContext.PairAnkets.Remove(pairAnket);
-                dbContext.SaveChanges();
-            }
-
-            dbContext.PairAnkets.AddRange(new List<PairAnket>
-            {
-                pairAnketForUser,
-                pairAnketForPair
-            });
-            dbContext.SaveChanges();
-
-            user.PairAnkets.Add(pairAnketForUser);
-            pair.PairAnkets.Add(pairAnketForPair);
+            RemovePairAnket(user, pair);
+            
+            AddPairAnket(user, pairAnketForUser);
+            AddPairAnket(pair, pairAnketForPair);
         }
         catch (Exception ex)
         {
@@ -215,5 +191,40 @@ public class AnketService
         {
             _logger.LogError($"Doesn't create anket for user {user.Key}, error: \"{ex.Message}\"");
         }
+    }
+
+    public void RemovePairAnket(User user, User pair)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+        
+        var userAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
+        if (userAnket != null)
+        {
+            user.PairAnkets.Remove(userAnket);
+            dbContext.PairAnkets.Remove(userAnket);
+            dbContext.SaveChanges();
+        }
+        
+        var pairAnket = user.PairAnkets.FirstOrDefault(pa => pa.PairKey == pair.Key);
+        if (pairAnket == null)
+        {
+            return;
+        }
+
+        pair.PairAnkets.Remove(pairAnket);
+        dbContext.PairAnkets.Remove(pairAnket);
+        dbContext.SaveChanges();
+    }
+
+    public void AddPairAnket(User user, PairAnket anket)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
+        dbContext.PairAnkets.Add(anket);
+        dbContext.SaveChanges();
+        
+        user.PairAnkets.Add(anket);
     }
 }
