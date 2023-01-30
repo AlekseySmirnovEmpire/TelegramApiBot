@@ -33,15 +33,22 @@ public class RewriterCallbackCommand : ICallbackCommand
         {
             throw new Exception("There is no user.");
         }
-
-        switch (data.Count)
+        
+        try
         {
-            case 2:
-                await SendNewQuestion(client, user, data.Last());
-                break;
-            case 3:
-                await ReWriteQuestion(client, user, data);
-                break;
+            switch (data.Count)
+            {
+                case 2:
+                    await SendNewQuestion(client, user, data.Last());
+                    break;
+                case 3:
+                    await ReWriteQuestion(client, user, data);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"There is an error, while rewriting user Answer, err message: {ex.Message}");
         }
     }
 
@@ -54,11 +61,11 @@ public class RewriterCallbackCommand : ICallbackCommand
 
         _questionsService.UpdateAnswer(user, questionId, data.Last());
         _anketService.GenerateSingleAnket(user);
-
-        foreach (var pairAnket in user.PairAnkets)
+        
+        user.PairAnkets.Select(pa => pa.PairKey).ToList().ForEach(pairKey =>
         {
-            _anketService.GeneratePairAnket(user, client.FindUser(pairAnket.PairKey));
-        }
+            _anketService.GeneratePairAnket(user, client.FindUser(pairKey));
+        });
 
         await client.SendMessageWithButtons(
             $"Ваша анкета успешно отредактирована! Код вашей анкеты:\n`{user.SingleAnket.Id}`\nУбедительная просьба: в целях безопасности не сообщайте его посторонним лицам!", 
