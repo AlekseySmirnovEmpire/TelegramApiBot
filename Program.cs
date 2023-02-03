@@ -39,6 +39,7 @@ builder.Services.AddSingleton<ICallbackCommand, PagerCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, RewriterCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, PairCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, BlackListCallbackCommand>();
+builder.Services.AddSingleton<ICallbackCommand, SubPairsCallbackCommand>();
 
 var app = builder.Build();
 if (env == Environments.Production)
