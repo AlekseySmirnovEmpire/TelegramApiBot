@@ -115,7 +115,7 @@ public class AnketCallbackCommand : ICallbackCommand
                             },
                             new[]
                             {
-                                InlineKeyboardButton.WithCallbackData("Мои парные анкеты", "Pager:Pairs:1")
+                                InlineKeyboardButton.WithCallbackData("Мои парные анкеты", "Pair:Init")
                             }
                         }));
                 break;

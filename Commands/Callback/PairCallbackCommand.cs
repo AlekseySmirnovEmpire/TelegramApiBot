@@ -22,7 +22,7 @@ public class PairCallbackCommand : ICallbackCommand
     public async Task Execute(TelegramBot client, Update update)
     {
         var data = update.CallbackQuery?.Data?.Split(":").ToList();
-        if (data is not { Count: 3 })
+        if (data == null || data.Count is < 2 or > 3)
         {
             throw new Exception("There is incorrect data.");
         }
@@ -41,9 +41,65 @@ public class PairCallbackCommand : ICallbackCommand
             case "Set":
                 await SetPairAnket(client, user, data.Last());
                 break;
+            case "Init":
+                await InitPairAnket(client, user);
+                break;
             default:
                 throw new Exception("There is not currect data chase for pair!");
         }
+    }
+
+    private static async Task InitPairAnket(TelegramBot client, User user)
+    {
+        if (!user.PairAnkets.Any())
+        {
+            await client.SendMessageWithButtons(
+                "Похоже, у вас ещё нет парных анкет!", 
+                user.Key,
+                MainMenu.ReturnToMainMenuButton(),
+                true);
+            return;
+        }
+
+        var text = user.SubscribeType switch
+        {
+            SubscribeTypeEnum.None =>
+                "Похоже, у вас нет подписки! Для пользователей без подписки доступна 1 парная анкета и частичный просмотр её!",
+            SubscribeTypeEnum.Default =>
+                "Похоже, у вас подписка первого уровня! Для вас доступно 3 парных анкеты и полный их просмотр!",
+            SubscribeTypeEnum.Special =>
+                "У вас подписка второго уровня, Вас доступен полный просмотр всех ваших парных анкет, которых может быть до 7!",
+            _ => throw new Exception($"There is no such subscribe type for user {user.Key}!")
+        };
+
+        var buttonText = user.SubscribeType switch
+        {
+            SubscribeTypeEnum.None => "Смотреть анкету",
+            _ => "Смореть анкеты"
+        };
+
+        var buttonData = user.SubscribeType switch
+        {
+            SubscribeTypeEnum.None => $"Pair:Get:{user.PairAnkets.First().PairKey}",
+            _ => "Pager:Pairs:1"
+        };
+
+        await client.SendMessageWithButtons(
+            text, 
+            user.Key,
+            new InlineKeyboardMarkup(
+                new[]
+                {
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(buttonText, buttonData)
+                    },
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
+                    }
+                }),
+            true);
     }
 
     private async Task CreatePair(TelegramBot client, User user, string data)
@@ -88,8 +144,14 @@ public class PairCallbackCommand : ICallbackCommand
             _ => $"Парная анкета создана! Код вашей анкеты: {anket.Id}"
         };
 
-        await client.SendMessageWithButtons($"{message}\n\nВнимание! В целях безопасности ваш персональный ключ был изменён!", user.Key, MainMenu.ReturnToMainMenuButton());
-        await client.SendMessageWithButtons(message, pairKey, MainMenu.ReturnToMainMenuButton());
+        await client.SendMessageWithButtons(
+            $"{message}\n\nВнимание! В целях безопасности ваш персональный ключ был изменён!", 
+            user.Key, 
+            MainMenu.ReturnToMainMenuButton());
+        await client.SendMessageWithButtons(
+            message, 
+            pairKey, 
+            MainMenu.ReturnToMainMenuButton());
     }
 
     private async Task SetPairAnket(TelegramBot client, User user, string data)
@@ -111,7 +173,34 @@ public class PairCallbackCommand : ICallbackCommand
                         {
                             InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                         }
-                    }));
+                    }),
+                true);
+            return;
+        }
+
+        if ((user.PairAnkets.Any() && user.SubscribeType == SubscribeTypeEnum.None) 
+            || (user.PairAnkets.Count == 3 && user.SubscribeType == SubscribeTypeEnum.Default) 
+            || (user.PairAnkets.Count == 7 && user.SubscribeType == SubscribeTypeEnum.Special))
+        {
+            var limit = user.SubscribeType switch
+            {
+                SubscribeTypeEnum.None => 1,
+                SubscribeTypeEnum.Default => 3,
+                SubscribeTypeEnum.Special => 7,
+                _ => throw new Exception($"There is no such subscribe type for user {user.Key}!")
+            };
+            await client.SendMessageWithButtons(
+                $"Похоже, вы уже достигли лимита парных анкет! Для вашего уровня подписки он составляет: {limit} анкет.",
+                user.Key,
+                new InlineKeyboardMarkup(
+                    new[]
+                    {
+                        new[]
+                        {
+                            InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
+                        }
+                    }),
+                true);
             return;
         }
 
@@ -144,7 +233,8 @@ public class PairCallbackCommand : ICallbackCommand
                         {
                             InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                         }
-                    }));
+                    }), 
+                true);
             return;
         }
 

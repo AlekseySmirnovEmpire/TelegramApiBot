@@ -7,11 +7,15 @@ using TelegramApiBot.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 DotEnv.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
-
+var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+if (env == Environments.Production)
+{
+    builder.Services.AddSwaggerGen();
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(Environment.GetEnvironmentVariable("ASPNETCORE_ConnectionString__NpgsqlConnection")));
 
@@ -37,9 +41,7 @@ builder.Services.AddSingleton<ICallbackCommand, PairCallbackCommand>();
 builder.Services.AddSingleton<ICallbackCommand, BlackListCallbackCommand>();
 
 var app = builder.Build();
-
-var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-if (env != Environments.Production)
+if (env == Environments.Production)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
