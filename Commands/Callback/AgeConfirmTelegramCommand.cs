@@ -35,11 +35,14 @@ public class AgeConfirmTelegramCommand : ICallbackCommand
             case "Yes":
                 user.AgeConfirmed = true;
                 _userService.UpdateUser(user);
-                await client.SendMessage("Отлично! Давай приступим!", chatId);
+                await client.SendMessage("Отлично! Давай приступим!", chatId, "Start");
                 await MainMenuService.SendMainMenu(client, update);
                 break;
             case "No":
-                await client.SendMessage("Чтобы пользоваться ботом необходимо быть старше 18 лет!", chatId);
+                await client.SendMessage(
+                    "Чтобы пользоваться ботом необходимо быть старше 18 лет!",
+                    chatId,
+                    "AgeConfirmDecline");
                 break;
             default:
                 throw new Exception("There is no answer for age confirm!");

@@ -49,7 +49,8 @@ public class PagerCallbackCommand : ICallbackCommand
             await client.SendMessageWithButtons(
                 "У вас нет ни одной парной анкеты!", 
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "NoPairAnket");
             return;
         }
 
@@ -160,6 +161,7 @@ public class PagerCallbackCommand : ICallbackCommand
                         InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                     }
                 }),
+            "WatchingPairAnkets",
             reWrite: true);
     }
 }

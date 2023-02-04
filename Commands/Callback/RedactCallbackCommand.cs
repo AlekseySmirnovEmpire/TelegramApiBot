@@ -43,7 +43,8 @@ public class RedactCallbackCommand : ICallbackCommand
                             {
                                 InlineKeyboardButton.WithCallbackData("Начать", "Question:1")
                             }
-                        }));
+                        }),
+                    "FullRewriteSingleAnket");
                 break;
             default:
                 throw new Exception($"There is no action for redact callback for user {user.Key}");

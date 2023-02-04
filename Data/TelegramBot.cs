@@ -21,6 +21,7 @@ public class TelegramBot
     private readonly Dictionary<string, ICallbackCommand> _callbacks;
     private readonly Dictionary<long, int> _messagesToDelete;
     private readonly PairService _pairService;
+    private readonly BotanService _botanService;
     public Dictionary<long, bool> UsersForWaitingPairId;
 
     public Dictionary<int, Question> Questions { get; }
@@ -31,7 +32,8 @@ public class TelegramBot
         IEnumerable<ICallbackCommand> callbackCommands,
         UserService userService,
         QuestionsService questionsService,
-        PairService pairService)
+        PairService pairService,
+        BotanService botanService)
     {
         _client = new TelegramBotClient(Environment.GetEnvironmentVariable("BOT_TOKEN") ?? string.Empty);
         _logger = logger;
@@ -46,6 +48,8 @@ public class TelegramBot
         Questions = questionsService.FindAllQuestions().ToDictionary(q => q.Id);
         UsersForWaitingPairId = new Dictionary<long, bool>();
         _logger.LogInformation($"Have been loaded {Questions.Count} questions!");
+
+        _botanService = botanService;
     }
 
     public void AddUser(User user)
@@ -75,15 +79,17 @@ public class TelegramBot
     public Question? FindQuestion(int questionId) =>
         !Questions.TryGetValue(questionId, out var question) ? null : question;
 
-    public async Task SendMessage(string text, long chatId) =>
-        await EditAndSendMessage(text, chatId, null, false);
+    public async Task SendMessage(string text, long chatId, string commandName, string? botanMessage = null) =>
+        await EditAndSendMessage(text, chatId, commandName, null, false, botanMessage);
 
     public async Task SendMessageWithButtons(
         string text,
         long chatId,
         IReplyMarkup replyMarkup,
+        string commandName,
+        string? botanMessage = null,
         bool reWrite = false) =>
-        await EditAndSendMessage(text, chatId, replyMarkup, reWrite);
+        await EditAndSendMessage(text, chatId, commandName, replyMarkup, reWrite, botanMessage);
 
     public void Start() => _client.StartReceiving(
         HandleUpdateAsync,
@@ -94,9 +100,12 @@ public class TelegramBot
     private async Task EditAndSendMessage(
         string text,
         long chatId,
+        string commandName,
         IReplyMarkup? replyMarkup,
-        bool reWrite)
+        bool reWrite,
+        string? botanMessage)
     {
+        _botanService.Track(commandName, chatId, botanMessage);
         if (_messagesToDelete.TryGetValue(chatId, out var messageId) && reWrite)
         {
             var message = await _client.EditMessageTextAsync(
@@ -265,7 +274,11 @@ public class TelegramBot
         catch (Exception ex)
         {
             _logger.LogError($"Error: {ex.Message}");
-            await SendMessage("Упс! Что-то пошло не так!", update.CallbackQuery?.From.Id ?? update.Message.From.Id);
+            await SendMessage(
+                "Упс! Что-то пошло не так!",
+                update.CallbackQuery?.From.Id ?? update.Message.From.Id,
+                "Error",
+                ex.Message);
         }
     }
 }

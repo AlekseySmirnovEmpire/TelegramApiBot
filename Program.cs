@@ -57,6 +57,7 @@ try
     builder.Services.AddSingleton<AnketService>();
     builder.Services.AddSingleton<PairService>();
     builder.Services.AddSingleton<BlackListService>();
+    builder.Services.AddSingleton<BotanService>();
 
     builder.Services.AddSingleton<ITelegramCommand, StartTelegramCommand>();
     builder.Services.AddSingleton<ITelegramCommand, MainMenuTelegramCommand>();

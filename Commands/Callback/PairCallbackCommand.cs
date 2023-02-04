@@ -57,7 +57,8 @@ public class PairCallbackCommand : ICallbackCommand
                 "Похоже, у вас ещё нет парных анкет!", 
                 user.Key,
                 MainMenu.ReturnToMainMenuButton(),
-                true);
+                "NoPairAnkets",
+                reWrite: true);
             return;
         }
 
@@ -99,7 +100,8 @@ public class PairCallbackCommand : ICallbackCommand
                         InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                     }
                 }),
-            true);
+            "SubscribePairService",
+            reWrite: true);
     }
 
     private async Task CreatePair(TelegramBot client, User user, string data)
@@ -131,7 +133,8 @@ public class PairCallbackCommand : ICallbackCommand
             await client.SendMessageWithButtons(
                 text,
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketExist");
             return;
         }
         
@@ -147,11 +150,13 @@ public class PairCallbackCommand : ICallbackCommand
         await client.SendMessageWithButtons(
             $"{message}\n\nВнимание! В целях безопасности ваш персональный ключ был изменён!", 
             user.Key, 
-            MainMenu.ReturnToMainMenuButton());
+            MainMenu.ReturnToMainMenuButton(),
+            "NotifyUserForChangingSingleAnketId");
         await client.SendMessageWithButtons(
             message, 
             pairKey, 
-            MainMenu.ReturnToMainMenuButton());
+            MainMenu.ReturnToMainMenuButton(),
+            "GeneratePairAnket");
     }
 
     private async Task SetPairAnket(TelegramBot client, User user, string data)
@@ -174,7 +179,8 @@ public class PairCallbackCommand : ICallbackCommand
                             InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                         }
                     }),
-                true);
+                "UserQuestionsInProgress",
+                reWrite: true);
             return;
         }
 
@@ -200,7 +206,8 @@ public class PairCallbackCommand : ICallbackCommand
                             InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                         }
                     }),
-                true);
+                "UserOutOfLimitPairAnkets",
+                reWrite: true);
             return;
         }
 
@@ -211,7 +218,7 @@ public class PairCallbackCommand : ICallbackCommand
         }
 
         client.UsersForWaitingPairId.Add(user.Key, true);
-        await client.SendMessage("Напишите мне код анкеты вашей пары:", user.Key);
+        await client.SendMessage("Напишите мне код анкеты вашей пары:", user.Key, "WaitForPairId");
     }
 
     private async Task GetPairAnket(TelegramBot client, User user, string data)
@@ -234,7 +241,8 @@ public class PairCallbackCommand : ICallbackCommand
                             InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                         }
                     }), 
-                true);
+                "UserWishToRedactAnket",
+                reWrite: true);
             return;
         }
 
@@ -248,7 +256,8 @@ public class PairCallbackCommand : ICallbackCommand
             await client.SendMessageWithButtons(
                 $"Ваш персональный секретный ключ для анкеты:\n`{user.SingleAnket.Id}`\nОтправьте его своей паре или получите от неё ключ и пройдите в \"Указать пару\", чтобы активировать.\nВ целях безопасности не сообщайте его постороннему человеку!",
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "SendUserSingleAnketId");
         }
 
         if (long.TryParse(data, out var pairKey))
@@ -276,7 +285,8 @@ public class PairCallbackCommand : ICallbackCommand
             await client.SendMessageWithButtons(
                 text,
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketSendToUser");
         }
     }
 }

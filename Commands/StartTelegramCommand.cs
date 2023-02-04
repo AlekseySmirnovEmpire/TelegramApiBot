@@ -41,11 +41,13 @@ public class StartTelegramCommand : ITelegramCommand
             client.AddUser(user);
             await client.SendMessage(
                 $"Здравствуйте, {update.Message.From?.FirstName ?? "гость"}! Добро пожаловать!", 
-                user.Key);
+                user.Key,
+                "NewUser");
             await client.SendMessageWithButtons(
                 "Для продолжения пользования ботом Вы должны быть старше 18 лет.\nВы подтверждаете, что вам больше 18 лет?",
                 user.Key,
-                AgeConfirm.AgeConfirmButtons());
+                AgeConfirm.AgeConfirmButtons(),
+                "AgeConfirmedCheck");
             return;
         }
 

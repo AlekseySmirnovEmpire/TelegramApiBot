@@ -48,7 +48,8 @@ public class FindPairCallbackCommand : ICallbackCommand
                             InlineKeyboardButton.WithCallbackData("Пары", "SubPairs:Init")
                         }
                     }),
-                true);
+                "SubPair",
+                reWrite: true);
             return;
         }
 
@@ -67,7 +68,8 @@ public class FindPairCallbackCommand : ICallbackCommand
                         InlineKeyboardButton.WithCallbackData("Подобрать по параметрам", "SubPairs:Params:Init")
                     }
                 }),
-            true);
+            "SubPair",
+            reWrite: true);
     }
     
     private static async Task InitForNonSub(TelegramBot client, User user)
@@ -84,6 +86,7 @@ public class FindPairCallbackCommand : ICallbackCommand
                         InlineKeyboardButton.WithCallbackData("Главное меню", "MainMenu")
                     }
                 }), 
-            true);
+            "SubPair",
+            reWrite: true);
     }
 }

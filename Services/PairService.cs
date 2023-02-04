@@ -33,7 +33,8 @@ public class PairService
             await client.SendMessageWithButtons(
                 "Извините, но вы указали неверный ключ или ваша пара ещё не прошла свою анкету!",
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "NotCorrectPairId");
             return;
         }
 
@@ -52,7 +53,8 @@ public class PairService
             await client.SendMessageWithButtons(
                 text,
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketIsExist");
             return;
         }
 
@@ -61,7 +63,8 @@ public class PairService
             await client.SendMessageWithButtons(
                 "Нарцизм это весело! Но мне бы анкету другого человека!",
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketSelfPick");
             return;
         }
 
@@ -70,7 +73,8 @@ public class PairService
             await client.SendMessageWithButtons(
                 "Данный пользователь находится у вас в чёрном списке! Удалите его оттуда, прежде чем создавать с ним парную анкету!",
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketPickPairFromBlackList");
             return;
         }
 
@@ -79,14 +83,17 @@ public class PairService
             await client.SendMessageWithButtons(
                 "Данный пользователь добавил вас в свой чёрный список!",
                 user.Key,
-                MainMenu.ReturnToMainMenuButton());
+                MainMenu.ReturnToMainMenuButton(),
+                "PairAnketUserInBlackList");
             return;
         }
 
         await client.SendMessageWithButtons(
             "Вашей паре был отправлен запрос, анкета появится сразу как только запрос будет подтверждён",
             user.Key,
-            MainMenu.ReturnToMainMenuButton());
+            MainMenu.ReturnToMainMenuButton(),
+            "PairAnketSendRequest",
+            $"User: {user.Key}; Pair: {pair.Key}");
         await client.SendMessageWithButtons(
             $"Пользователь [{user.NickName ?? user.Name}](tg://user?id={user.Key}) хочет отметить вас как свою пару, вы принимаете его запрос?",
             pair.Key,
@@ -98,6 +105,8 @@ public class PairService
                         InlineKeyboardButton.WithCallbackData("Да", $"Pair:Set:{user.Key}"),
                         InlineKeyboardButton.WithCallbackData("Нет", $"BlackList:Init:{user.Key}")
                     }
-                }));
+                }),
+            "PairAnketRequest",
+            $"From: {user.Key}");
     }
 }
