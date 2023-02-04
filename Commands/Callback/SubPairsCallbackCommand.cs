@@ -33,6 +33,8 @@ public class SubPairsCallbackCommand : ICallbackCommand
                         InlineKeyboardButton.WithCallbackData("Главное меню", "MainMenu")
                     }
                 }), 
+            "SubscribePairFailed",
+            $"Required more then {user.SubscribeType} subscribe!",
             true);
     }
 }

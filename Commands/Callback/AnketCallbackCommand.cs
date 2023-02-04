@@ -38,7 +38,8 @@ public class AnketCallbackCommand : ICallbackCommand
                             {
                                 InlineKeyboardButton.WithCallbackData("Начать", "Question:1")
                             }
-                        }));
+                        }),
+                    "SingleAnket");
                 break;
             case "Init" when user.QuestionsToUsers.Count > 0 && user.QuestionsToUsers.Count < client.Questions.Count:
                 await client.SendMessageWithButtons(
@@ -52,7 +53,8 @@ public class AnketCallbackCommand : ICallbackCommand
                                 InlineKeyboardButton.WithCallbackData("Продолжить",
                                     $"Question:{(user.QuestionsToUsers?.Count ?? 0) + 1}")
                             }
-                        }));
+                        }),
+                    "SingleAnket");
                 break;
             case "Init" when user.QuestionsToUsers.Count == client.Questions.Count:
                 var anket = user.SingleAnket != null
@@ -61,7 +63,8 @@ public class AnketCallbackCommand : ICallbackCommand
                 await client.SendMessageWithButtons(
                     $"Вы уже прошли анкету!\n{anket}",
                     user.Key,
-                    MainMenu.ReturnToMainMenuButton());
+                    MainMenu.ReturnToMainMenuButton(),
+                    "SingleAnket");
                 break;
             case "Redact" when user.QuestionsToUsers.Count < client.Questions.Count:
                 await client.SendMessageWithButtons(
@@ -79,7 +82,8 @@ public class AnketCallbackCommand : ICallbackCommand
                             {
                                 InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                             }
-                        }));
+                        }),
+                    "SingleAnket");
                 break;
             case "Redact" when user.QuestionsToUsers.Count == client.Questions.Count:
                 await client.SendMessageWithButtons(
@@ -96,7 +100,8 @@ public class AnketCallbackCommand : ICallbackCommand
                             {
                                 InlineKeyboardButton.WithCallbackData("Пройти заново", "Redact:Restart")
                             }
-                        }));
+                        }),
+                    "SingleAnket");
                 break;
             case "Pair":
                 await client.SendMessageWithButtons(
@@ -117,7 +122,8 @@ public class AnketCallbackCommand : ICallbackCommand
                             {
                                 InlineKeyboardButton.WithCallbackData("Мои парные анкеты", "Pair:Init")
                             }
-                        }));
+                        }),
+                    "SingleAnket");
                 break;
             default:
                 throw new Exception("There is not currect data chase for anket!");

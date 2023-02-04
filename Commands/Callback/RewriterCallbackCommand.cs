@@ -77,7 +77,8 @@ public class RewriterCallbackCommand : ICallbackCommand
                     {
                         InlineKeyboardButton.WithCallbackData("В меню", "MainMenu")
                     }
-                }));
+                }),
+            "RewriteSingleAnket");
     }
 
     private static async Task SendNewQuestion(TelegramBot client, User user, string data)
@@ -93,6 +94,8 @@ public class RewriterCallbackCommand : ICallbackCommand
             $"{question.Id}/{client.Questions.Count}: {question.Text}",
             user.Key,
             QuestionsButtons.GetButtons(question.Id, true),
+            "QuestionsRewrite",
+            $"Question #{question.Id}",
             reWrite: true);
     }
 }

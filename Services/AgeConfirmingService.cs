@@ -23,11 +23,15 @@ public class AgeConfirmingService
         {
             return true;
         }
-        await client.SendMessage("Для начала пользования ботом необходимо подтвердить возраст!", user.Key);
+        await client.SendMessage(
+            "Для начала пользования ботом необходимо подтвердить возраст!", 
+            user.Key, 
+            "AgeConfirmedInit");
         await client.SendMessageWithButtons(
             "Для продолжения пользования ботом Вы должны быть старше 18 лет.\nВы подтверждаете, что вам больше 18 лет?",
             user.Key,
-            AgeConfirm.AgeConfirmButtons());
+            AgeConfirm.AgeConfirmButtons(),
+            "AgeConfirmedCheck");
 
         return false;
     }

@@ -13,12 +13,13 @@ public class MainMenuService
 
         if (user == null)
         {
-            throw new Exception("Therer is no user in dictionary.");
+            throw new Exception("There is no user in dictionary.");
         }
         
         await client.SendMessageWithButtons(
             $"{user.Name.Split(" ").First()}, добро пожаловать в бота!\nВыберите действие, что вы хотите сделать:",
             user.Key,
-            MainMenu.MainMenuButtons());
+            MainMenu.MainMenuButtons(),
+            "MainMenu");
     }
 }

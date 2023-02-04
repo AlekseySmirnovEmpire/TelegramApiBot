@@ -15,7 +15,7 @@ public class NoCommandMessage
 
         var text = user.AgeConfirmed ? ConfirmedAnswer(update) : NonConfirmedAnswer(update);
 
-        await client.SendMessage(text, user.Key);
+        await client.SendMessage(text, user.Key, "NonCommandText");
     }
 
     private static string NonConfirmedAnswer(Update update)

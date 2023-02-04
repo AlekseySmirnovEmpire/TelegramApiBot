@@ -43,7 +43,8 @@ public class QuestionsCallbackCommand : ICallbackCommand
                 await client.SendMessageWithButtons(
                     "Вы уже отвечали на вопросы!",
                     user.Key,
-                    MainMenu.ReturnToMainMenuButton());
+                    MainMenu.ReturnToMainMenuButton(),
+                    "UserAlreadyAnswerAllQuestions");
             }
         }
         if (client.Questions.Count == questionId && data.Count > 2)
@@ -61,6 +62,7 @@ public class QuestionsCallbackCommand : ICallbackCommand
                 $"Спасибо, что закончили анкету!\n{anket}",
                 update.CallbackQuery.From.Id,
                 replyMarkup: MainMenu.ReturnToMainMenuButton(),
+                "GenerateSingleAnket",
                 reWrite: true);
             return;
         }
@@ -90,6 +92,8 @@ public class QuestionsCallbackCommand : ICallbackCommand
             $"{question.Id}/{client.Questions.Count}: {question.Text}",
             chatId,
             QuestionsButtons.GetButtons(question.Id),
+            "QuestionsInit",
+            $"Question #{question.Id}",
             reWrite: true);
     }
 }

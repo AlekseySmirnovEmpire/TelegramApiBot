@@ -57,14 +57,16 @@ public class BlackListCallbackCommand : ICallbackCommand
                                 InlineKeyboardButton.WithCallbackData("Да", $"BlackList:Add:{blockedUser.Key}"),
                                 InlineKeyboardButton.WithCallbackData("Нет", "MainMenu")
                             }
-                        }));
+                        }),
+                    "PairAnketDecline");
                 break;
             case "Add":
                 _blackListService.AddUserToBlackList(user, blockedUser);
                 await client.SendMessageWithButtons(
                     $"Пользователь [{blockedUser.NickName ?? blockedUser.Name}](tg://user?id={blockedUser.Key}) добавлен в ЧС!",
                     user.Key,
-                    MainMenu.ReturnToMainMenuButton());
+                    MainMenu.ReturnToMainMenuButton(),
+                    "BlackListAdd");
                 break;
             default:
                 throw new Exception("There is not currect data chase for black list!");
