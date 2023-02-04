@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
+using Quartz;
+using Quartz.Impl;
 using TelegramApiBot.Commands;
 using TelegramApiBot.Commands.Callback;
 using TelegramApiBot.Configuration;
 using TelegramApiBot.Data;
+using TelegramApiBot.Scheduler;
 using TelegramApiBot.Services;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -19,11 +22,10 @@ try
     if (env == Environments.Production)
     {
         builder.Services.AddSwaggerGen();
+        builder.Logging.ClearProviders();
+        builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
+        builder.Host.UseNLog();
     }
-    
-    builder.Logging.ClearProviders();
-    builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
-    builder.Host.UseNLog();
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(Environment.GetEnvironmentVariable("ASPNETCORE_ConnectionString__NpgsqlConnection")));
@@ -49,6 +51,18 @@ try
     builder.Services.AddSingleton<ICallbackCommand, PairCallbackCommand>();
     builder.Services.AddSingleton<ICallbackCommand, BlackListCallbackCommand>();
     builder.Services.AddSingleton<ICallbackCommand, SubPairsCallbackCommand>();
+    
+    //JOBS
+    builder.Services.AddScoped<BaseJob, SubscribeJob>();
+
+    builder.Services.AddScoped<TaskManager>();
+    
+    var factory = new StdSchedulerFactory();
+    var scheduler = factory.GetScheduler().Result;
+    builder.Services.AddSingleton(typeof(IScheduler), scheduler);
+    
+    scheduler.JobFactory = new JobFactory(builder.Services);
+    scheduler.Start();
 
     var app = builder.Build();
     if (env == Environments.Production)
@@ -57,7 +71,10 @@ try
         app.UseSwaggerUI();
     }
 
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    if (env == Environments.Production)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    }
 
     app.UseHttpsRedirection();
 
@@ -67,6 +84,10 @@ try
 
     var bot = app.Services.GetService<TelegramBot>();
     bot?.Start();
+
+    // await scheduler.ScheduleJob(
+    //     JobBuilder.Create<SubscribeJob>().Build(),
+    //     .Build());
 
     app.Run();
 }

@@ -17,12 +17,14 @@ public class User
     public bool AgeConfirmed { get; set; }
 
     public DateTime CreatedAt { get; set; }
-    
+
+    public DateTime? SubscribeEndedAt { get; set; }
+
     public List<QuestionsToUsers> QuestionsToUsers { get; set; }
-    
+
     public SingleAnket? SingleAnket { get; set; }
-    
+
     public List<BlackList> BlackList { get; set; }
-    
+
     public List<PairAnket> PairAnkets { get; set; }
 }

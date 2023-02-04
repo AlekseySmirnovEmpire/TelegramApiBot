@@ -35,8 +35,10 @@ public class UserService
         using var scope = _serviceScopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
+        var subscribeTime = user.SubscribeEndedAt.HasValue ? $"'{user.SubscribeEndedAt.Value.Date}'" : "NULL";
+
         dbContext.Database.ExecuteSqlRaw(
-            $@"UPDATE ""Users"" SET ""SubscribeType"" = {Convert.ToInt32(user.SubscribeType)}, ""AgeConfirmed"" = {user.AgeConfirmed} WHERE ""Id"" = '{user.Id}'");
+            $@"UPDATE ""Users"" SET ""SubscribeType"" = {Convert.ToInt32(user.SubscribeType)}, ""AgeConfirmed"" = {user.AgeConfirmed}, ""SubscribeEndedAt"" = {subscribeTime}  WHERE ""Id"" = '{user.Id}'");
     }
 
     public User? FindByKey(long userKey)
