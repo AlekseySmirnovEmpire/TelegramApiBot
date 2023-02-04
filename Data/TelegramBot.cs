@@ -58,6 +58,18 @@ public class TelegramBot
         _usersInSession.Add(user.Key, user);
     }
 
+    public List<User> GetAllUsersInSession() => _usersInSession.Values.ToList();
+
+    public void UpdateUserInSession(User user)
+    {
+        if (!_usersInSession.TryGetValue(user.Key, out var _))
+        {
+            return;
+        }
+
+        _usersInSession[user.Key] = user;
+    }
+
     public User? FindUser(long userKey) => !_usersInSession.TryGetValue(userKey, out var user) ? null : user;
 
     public Question? FindQuestion(int questionId) =>
